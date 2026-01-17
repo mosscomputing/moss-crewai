@@ -8,7 +8,6 @@ Usage:
     # All CrewAI task outputs and tool calls are now signed
 """
 
-from typing import Any, Optional
 from functools import wraps
 import os
 
@@ -43,7 +42,7 @@ def enable_moss(subject_prefix: str = "moss:crewai"):
     _subject_prefix = subject_prefix
 
     try:
-        from crewai import Agent, Task, Crew
+        from crewai import Agent, Crew
     except ImportError:
         raise ImportError("CrewAI not installed. Run: pip install crewai")
 
