@@ -1,6 +1,6 @@
 # moss-crewai
 
-MOSS signing integration for CrewAI agents.
+MOSS signing integration for CrewAI agents. **Unsigned output is broken output.**
 
 ## Installation
 
@@ -8,7 +8,40 @@ MOSS signing integration for CrewAI agents.
 pip install moss-crewai
 ```
 
-## Usage
+## Quick Start: Auto-Signing (Recommended)
+
+The easiest way to use MOSS with CrewAI is to enable auto-signing:
+
+```python
+from moss_crewai import enable_moss
+
+# Enable auto-signing for all CrewAI operations
+enable_moss("moss:myteam:crewai")
+
+# All agent tasks, crew outputs, and tool calls are signed automatically
+from crewai import Agent, Task, Crew
+
+researcher = Agent(role="Researcher", goal="Find info", backstory="...")
+writer = Agent(role="Writer", goal="Write content", backstory="...")
+
+task = Task(description="Research AI trends", agent=researcher)
+crew = Crew(agents=[researcher, writer], tasks=[task])
+
+result = crew.kickoff()  # Output is signed!
+
+# Access envelope
+envelope = crew._moss_envelope
+```
+
+You can also enable auto-signing via environment variable:
+
+```bash
+export MOSS_AUTO_ENABLE=true
+```
+
+## Manual Usage with moss_wrap
+
+For more control, wrap individual agents:
 
 ```python
 from crewai import Agent
@@ -32,9 +65,40 @@ envelope = agent.moss_envelope  # MOSS Envelope with signature
 ## Verification
 
 ```python
-from moss import Subject
+from moss import verify
 
-# Verify the agent's output
-result = Subject.verify(agent.moss_envelope)
+# Verify the agent's output - no network required
+result = verify(agent.moss_envelope)
+
+if result.valid:
+    print(f"Signed by: {result.subject}")
+else:
+    print(f"Invalid: {result.reason}")
+
+# Or use envelope.verify() directly
+result = agent.moss_envelope.verify()
 assert result.valid
+```
+
+## What Gets Signed
+
+With `enable_moss()`:
+- `Agent.execute_task()` - Task start, completion, and errors
+- `Crew.kickoff()` - Crew start, completion, and errors
+- Tool calls - Input, output, and errors
+
+With `moss_wrap()`:
+- `execute_task()`, `execute()`, `run()`, `invoke()` methods
+
+## Checking Status
+
+```python
+from moss_crewai import is_enabled, disable_moss
+
+# Check if auto-signing is enabled
+if is_enabled():
+    print("MOSS auto-signing is active")
+
+# Disable if needed (for testing)
+disable_moss()
 ```
