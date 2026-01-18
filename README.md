@@ -2,6 +2,8 @@
 
 MOSS signing integration for CrewAI agents. **Unsigned output is broken output.**
 
+[![PyPI](https://img.shields.io/pypi/v/moss-crewai)](https://pypi.org/project/moss-crewai/)
+
 ## Installation
 
 ```bash
@@ -80,6 +82,19 @@ result = agent.moss_envelope.verify()
 assert result.valid
 ```
 
+## Execution Record
+
+Each signed output produces a verifiable execution record:
+
+```
+agent_id:      moss:team:researcher
+timestamp:     2026-01-18T12:34:56Z
+sequence:      1
+payload_hash:  SHA-256:abc123...
+signature:     ML-DSA-44:xyz789...
+status:        VERIFIED
+```
+
 ## What Gets Signed
 
 With `enable_moss()`:
@@ -102,3 +117,19 @@ if is_enabled():
 # Disable if needed (for testing)
 disable_moss()
 ```
+
+## Evidence Retention
+
+Free tier provides runtime enforcement only. Production environments require retained, verifiable execution records.
+
+See [mosscomputing.com](https://mosscomputing.com) for evidence continuity options.
+
+## Links
+
+- [moss-sdk](https://pypi.org/project/moss-sdk/) - Core MOSS SDK
+- [mosscomputing.com](https://mosscomputing.com) - Project site
+- [app.mosscomputing.com](https://app.mosscomputing.com) - Dashboard
+
+## License
+
+MIT
