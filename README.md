@@ -103,4 +103,4 @@ agent = moss_wrap(agent, "moss:team:researcher")  # Per-agent signing
 
 ## License
 
-MIT
+Proprietary - See [LICENSE](LICENSE) for terms.
