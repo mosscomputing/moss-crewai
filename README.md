@@ -1,6 +1,6 @@
 # moss-crewai
 
-MOSS signing integration for CrewAI agents. **Unsigned output is broken output.**
+MOSS signing integration for CrewAI. **Unsigned output is broken output.**
 
 [![PyPI](https://img.shields.io/pypi/v/moss-crewai)](https://pypi.org/project/moss-crewai/)
 
@@ -10,125 +10,96 @@ MOSS signing integration for CrewAI agents. **Unsigned output is broken output.*
 pip install moss-crewai
 ```
 
-## Quick Start: Auto-Signing (Recommended)
+## Quick Start: Explicit Signing (Recommended)
 
-The easiest way to use MOSS with CrewAI is to enable auto-signing:
-
-```python
-from moss_crewai import enable_moss
-
-# Enable auto-signing for all CrewAI operations
-enable_moss("moss:myteam:crewai")
-
-# All agent tasks, crew outputs, and tool calls are signed automatically
-from crewai import Agent, Task, Crew
-
-researcher = Agent(role="Researcher", goal="Find info", backstory="...")
-writer = Agent(role="Writer", goal="Write content", backstory="...")
-
-task = Task(description="Research AI trends", agent=researcher)
-crew = Crew(agents=[researcher, writer], tasks=[task])
-
-result = crew.kickoff()  # Output is signed!
-
-# Access envelope
-envelope = crew._moss_envelope
-```
-
-You can also enable auto-signing via environment variable:
-
-```bash
-export MOSS_AUTO_ENABLE=true
-```
-
-## Manual Usage with moss_wrap
-
-For more control, wrap individual agents:
+Sign task outputs, crew results, and agent outputs:
 
 ```python
-from crewai import Agent
-from moss_crewai import moss_wrap
+from crewai import Crew, Agent, Task
+from moss_crewai import sign_task_output, sign_crew_result, sign_agent_output
 
-# Create your CrewAI agent
-agent = Agent(
-    role="Researcher",
-    goal="Find information",
-    backstory="You are a research assistant"
+# Run your crew
+crew = Crew(agents=[...], tasks=[...])
+result = crew.kickoff()
+
+# Sign the crew result
+signed = sign_crew_result(result, agent_id="research-crew")
+print(f"Signed: {signed.signature[:20]}...")
+
+# Sign individual task outputs
+for task_output in result.tasks_output:
+    signed = sign_task_output(task_output, agent_id="research-crew", task="research")
+```
+
+## Enterprise Mode
+
+Set `MOSS_API_KEY` for automatic policy evaluation:
+
+```python
+import os
+os.environ["MOSS_API_KEY"] = "your-api-key"
+
+from moss_crewai import sign_crew_result, enterprise_enabled
+
+print(f"Enterprise: {enterprise_enabled()}")  # True
+
+result = sign_crew_result(
+    crew_output,
+    agent_id="finance-crew",
+    context={"user_id": "u123", "department": "finance"}
 )
 
-# Wrap with MOSS signing
-agent = moss_wrap(agent, "moss:team:researcher")
-
-# After agent executes, signature is available
-result = agent.execute_task(task)
-envelope = agent.moss_envelope  # MOSS Envelope with signature
+if result.blocked:
+    print(f"Blocked by policy: {result.policy.reason}")
 ```
 
 ## Verification
 
 ```python
-from moss import verify
+from moss_crewai import verify_envelope
 
-# Verify the agent's output - no network required
-result = verify(agent.moss_envelope)
-
-if result.valid:
-    print(f"Signed by: {result.subject}")
-else:
-    print(f"Invalid: {result.reason}")
-
-# Or use envelope.verify() directly
-result = agent.moss_envelope.verify()
-assert result.valid
+verify_result = verify_envelope(result.envelope)
+if verify_result.valid:
+    print(f"Signed by: {verify_result.subject}")
 ```
 
-## Execution Record
+## All Functions
 
-Each signed output produces a verifiable execution record:
+| Function | Description |
+|----------|-------------|
+| `sign_task_output()` | Sign a task's output |
+| `sign_task_output_async()` | Async version |
+| `sign_agent_output()` | Sign an agent's output |
+| `sign_agent_output_async()` | Async version |
+| `sign_crew_result()` | Sign full crew kickoff result |
+| `sign_crew_result_async()` | Async version |
+| `verify_envelope()` | Verify a signed envelope |
 
-```
-agent_id:      moss:team:researcher
-timestamp:     2026-01-18T12:34:56Z
-sequence:      1
-payload_hash:  SHA-256:abc123...
-signature:     ML-DSA-44:xyz789...
-status:        VERIFIED
-```
+## Legacy API
 
-## What Gets Signed
-
-With `enable_moss()`:
-- `Agent.execute_task()` - Task start, completion, and errors
-- `Crew.kickoff()` - Crew start, completion, and errors
-- Tool calls - Input, output, and errors
-
-With `moss_wrap()`:
-- `execute_task()`, `execute()`, `run()`, `invoke()` methods
-
-## Checking Status
+The old auto-signing API is still available:
 
 ```python
-from moss_crewai import is_enabled, disable_moss
+from moss_crewai import enable_moss, moss_wrap
 
-# Check if auto-signing is enabled
-if is_enabled():
-    print("MOSS auto-signing is active")
-
-# Disable if needed (for testing)
-disable_moss()
+enable_moss("moss:myteam:crewai")  # Global auto-signing
+agent = moss_wrap(agent, "moss:team:researcher")  # Per-agent signing
 ```
 
-## Evidence Retention
+## Enterprise Features
 
-Free tier provides runtime enforcement only. Production environments require retained, verifiable execution records.
-
-See [mosscomputing.com](https://mosscomputing.com) for evidence continuity options.
+| Feature | Free | Enterprise |
+|---------|------|------------|
+| Local signing | ✓ | ✓ |
+| Offline verification | ✓ | ✓ |
+| Policy evaluation | - | ✓ |
+| Evidence retention | - | ✓ |
+| Audit exports | - | ✓ |
 
 ## Links
 
 - [moss-sdk](https://pypi.org/project/moss-sdk/) - Core MOSS SDK
 - [mosscomputing.com](https://mosscomputing.com) - Project site
-- [app.mosscomputing.com](https://app.mosscomputing.com) - Dashboard
 
 ## License
 
