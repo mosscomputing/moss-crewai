@@ -1,6 +1,10 @@
 # moss-crewai
 
-MOSS signing integration for CrewAI. **Unsigned output is broken output.**
+MOSS integration for [CrewAI](https://crewai.com) - cryptographic signing for AI crew orchestration.
+
+**Unsigned agent output is broken output.**
+
+All signatures use **ML-DSA-44** (NIST FIPS 204), the post-quantum cryptographic standard.
 
 [![PyPI](https://img.shields.io/pypi/v/moss-crewai)](https://pypi.org/project/moss-crewai/)
 
@@ -111,10 +115,20 @@ All new signups get a **14-day free trial** of Pro.
 | SIEM integration | - | ✓ | ✓ |
 | Compliance exports | - | ✓ | ✓ |
 
+## Why Sign CrewAI Actions?
+
+1. **Compliance** - Prove to auditors exactly what your crew did
+2. **Accountability** - Cryptographic proof of every task output
+3. **Crew Tracing** - Track work across agents and tasks
+4. **Policy Enforcement** - Block unauthorized actions automatically
+5. **Future-Proof** - ML-DSA-44 post-quantum signatures
+
 ## Links
 
-- [moss-sdk](https://pypi.org/project/moss-sdk/) - Core MOSS SDK
 - [mosscomputing.com](https://mosscomputing.com) - Project site
+- [app.mosscomputing.com](https://app.mosscomputing.com) - Developer Console
+- [moss-sdk](https://pypi.org/project/moss-sdk/) - Core MOSS SDK
+- [CrewAI](https://crewai.com) - CrewAI framework
 
 ## License
 
